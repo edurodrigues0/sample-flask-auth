@@ -40,6 +40,24 @@ def logout():
   logout_user()
   return jsonify({"message": "Logged out"}), 200
     
+@app.route("/users", methods=['POST'])
+def create_user():
+  data = request.json
+  name = data.get("name")
+  email = data.get("email")
+  password = data.get("password")
+
+  if name and email and password:
+    user_exists = User.query.filter(User.email == email).first()
+
+    if user_exists:
+      return jsonify({"message": "User already exists"}), 400
+
+    user = User(name=name, email=email, password=password)
+    db.session.add(user)
+    db.session.commit()
+    return jsonify({"message": "User created"}), 201
+  return jsonify({"message": "Invalid data"}), 400
 
 @app.route("/hello-world", methods=['GET'])
 def hello_world():
