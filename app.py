@@ -59,9 +59,23 @@ def create_user():
     return jsonify({"message": "User created"}), 201
   return jsonify({"message": "Invalid data"}), 400
 
+@app.route('/users/<string:id>', methods=['GET'])
+def read_user(id):
+  user = User.query.filter(User.id == id).first()
+
+  if user:
+    return jsonify({
+      "id": user.id,
+      "name": user.name,
+      "email": user.email,
+      "created_at": user.created_at.isoformat(),
+      "updated_at": user.updated_at.isoformat()
+    }), 200
+  return jsonify({"message": "User not found"}), 404
+
 @app.route("/hello-world", methods=['GET'])
 def hello_world():
   return "Hello World"
 
 if __name__ == '__main__':
-  app.run(debug=True, port=3333)
+  app.run(debug=True)
