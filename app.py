@@ -6,7 +6,7 @@ from flask_login import LoginManager, login_user, current_user, logout_user, log
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'thisissecret'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql:///root:admin123@127.0.0.1:3306/sample_flask_auth'
 
 login_manager = LoginManager()
 
