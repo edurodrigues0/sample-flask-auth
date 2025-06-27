@@ -53,7 +53,7 @@ def create_user():
     if user_exists:
       return jsonify({"message": "User already exists"}), 400
 
-    user = User(name=name, email=email, password=password)
+    user = User(name=name, email=email, password=password, role='user')
     db.session.add(user)
     db.session.commit()
     return jsonify({"message": "User created"}), 201
@@ -94,10 +94,16 @@ def read_user(id):
   return jsonify({"message": "User not found"}), 404
 
 @app.route('/users/<string:id>', methods=['PUT'])
+@login_required
 def update_user(id):
   data = request.json
   name = data.get("name")
   password = data.get("password")
+  role = data.get("role")
+
+  if id != current_user.id and current_user.role == 'user':
+    return jsonify({"message": "You not can update other users"}), 403
+
 
   if name or password:
     user = User.query.filter(User.id == id).first()
@@ -109,6 +115,10 @@ def update_user(id):
       user.name = name
     if password:
       user.password = password
+    if role and current_user.role == 'admin':
+      if role not in ['user', 'admin']:
+        return jsonify({"message": "Invalid role"}), 400
+      user.role = role
 
     db.session.commit()
     return jsonify({"message": "User updated"}), 200
@@ -121,7 +131,8 @@ def delete_user(id):
 
   if current_user.id == id:
     return jsonify({"message": "You not can delete your own account"}), 403
-
+  if current_user.role != 'admin':
+    return jsonify({"message": "You not can delete other users"}), 403
 
   if user:
     user_name = user.name
