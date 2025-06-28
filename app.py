@@ -1,3 +1,4 @@
+import bcrypt
 from models.users import User
 
 from database import db
@@ -28,7 +29,7 @@ def authenticate():
   if email and password:
     user = User.query.filter(User.email == email).first()
 
-    if user and user.password == password:
+    if user and bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
       login_user(user)
       return jsonify({"message": "Authenticated"}), 200
       
@@ -53,7 +54,8 @@ def create_user():
     if user_exists:
       return jsonify({"message": "User already exists"}), 400
 
-    user = User(name=name, email=email, password=password, role='user')
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    user = User(name=name, email=email, password=hashed_password, role='user')
     db.session.add(user)
     db.session.commit()
     return jsonify({"message": "User created"}), 201
@@ -114,7 +116,8 @@ def update_user(id):
     if name:
       user.name = name
     if password:
-      user.password = password
+      hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+      user.password = hashed_password
     if role and current_user.role == 'admin':
       if role not in ['user', 'admin']:
         return jsonify({"message": "Invalid role"}), 400
